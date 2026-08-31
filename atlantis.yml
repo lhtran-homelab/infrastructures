@@ -1,0 +1,14 @@
+version: 3
+projects:
+  - name: platform-cluster-01
+    dir: pve-talos-clusters/platform-cluster-01
+    autoplan:
+      when_modified:
+        - "*.tf"
+        - "**/*.tf"
+        - "*.yml"
+        - "**/*.yml"
+        - "*.yaml"
+        - "**/*.yaml"
+        - "*.tfvars"
+      enabled: true
