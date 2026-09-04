@@ -1,0 +1,18 @@
+gateway:
+  annotations:
+    cert-manager.io/cluster-issuer: zerossl-lhtran-com
+  listeners:
+    https-tools:
+      hostname: "*.tools.lhtran.com"
+      port: 8443
+      protocol: HTTPS
+      namespacePolicy:
+        from: Selector
+        selector:
+          matchLabels:
+            shared-traefik-gateway-access: "true"
+      mode: Terminate
+      certificateRefs:
+        - group: ""
+          kind: Secret
+          name: wildcard-tools-lhtran-com

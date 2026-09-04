@@ -1,0 +1,3 @@
+# Presence of this file opts platform-cluster-01 into cert-manager.
+release:
+  version: "1.19.2"

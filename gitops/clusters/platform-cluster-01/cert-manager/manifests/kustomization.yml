@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - clusterissuer-selfsigned.yml
+  - clusterissuer-zerossl.yml
+  - externalsecret-cloudflare.yml
+  - externalsecret-zerossl-eab.yml

@@ -1,5 +1,5 @@
-module "pve_talos_cluster" {
-  source                   = "https://github.com/lhtran-homelab/iac-modules/releases/download/pve-talos-cluster-v0.2.0/pve-talos-cluster-v0.2.0.zip"
+module "platform_cluster_01" {
+  source                   = "https://github.com/lhtran-homelab/iac-modules/releases/download/pve-talos-cluster-v0.3.0/pve-talos-cluster-v0.3.0.zip"
   proxmox_api_url          = data.aws_ssm_parameter.proxmox_api_url.value
   proxmox_api_token_id     = data.aws_ssm_parameter.proxmox_api_token_id.value
   proxmox_api_token_secret = data.aws_ssm_parameter.proxmox_api_token_secret.value
@@ -21,8 +21,8 @@ module "pve_talos_cluster" {
   vm_worker_memory       = 2048
   vm_worker_disk_size_gb = 60
 
-  talos_cluster_name                = "platform-cluster-01"
-  talos_cluster_virtual_ip_hostname = "platform-cluster-01.lhtran.com"
+  talos_cluster_name                = local.talos_cluster_name
+  talos_cluster_virtual_ip_hostname = "${local.talos_cluster_name}.lhtran.com"
   talos_cluster_virtual_ip          = "172.16.100.30"
   talos_architecture                = "amd64"
   talos_version                     = "1.13.8"
@@ -48,19 +48,23 @@ module "pve_talos_cluster" {
 
   pihole_url      = data.aws_ssm_parameter.pihole_api_url.value
   pihole_password = data.aws_ssm_parameter.pihole_password.value
+
+  s3_oidc = {
+    region = local.aws_region
+  }
 }
 
 resource "local_file" "kubeconfig" {
-  content  = module.pve_talos_cluster.kubeconfig
+  content  = module.platform_cluster_01.kubeconfig.raw
   filename = "${path.module}/artifacts/kubeconfig"
 }
 
 resource "local_file" "talosconfig" {
-  content  = module.pve_talos_cluster.talosconfig
+  content  = module.platform_cluster_01.talosconfig
   filename = "${path.module}/artifacts/talosconfig"
 }
 
 resource "local_file" "frr_bgp_config" {
-  content  = module.pve_talos_cluster.frr_bgp_config
+  content  = module.platform_cluster_01.frr_bgp_config
   filename = "${path.module}/artifacts/frr_bgp_config"
 }

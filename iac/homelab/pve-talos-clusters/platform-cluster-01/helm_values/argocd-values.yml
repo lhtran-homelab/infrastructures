@@ -1,0 +1,82 @@
+global:
+  domain: "${hostname}"
+
+configs:
+  params:
+    server.insecure: true
+  cm:
+    oidc.config: |
+      name: Pocket-ID
+      issuer: $argocd-pocketid-oidc:issuer
+      clientID: $argocd-pocketid-oidc:clientID
+      clientSecret: $argocd-pocketid-oidc:clientSecret
+      requestedScopes:
+        - openid
+        - profile
+        - email
+        - groups
+  rbac:
+    scopes: '[groups]'
+    policy.csv: |
+      g, argocd_admin, role:admin
+server:
+  service:
+    servicePortHttp2: 8085
+    servicePortHttp2AppProtocol: "kubernetes.io/h2c"
+  httproute:
+    enabled: true
+    hostnames: 
+      - "${hostname}"
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik
+        sectionName: https-tools
+  grpcroute:
+    enabled: false
+
+extraObjects:
+  - apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: bootstrap
+      namespace: argocd
+    spec:
+      description: Bootstrap project owning only the root Application.
+      sourceRepos:
+        - https://github.com/lhtran-homelab/infrastructures.git
+      destinations:
+        - namespace: argocd
+          name: in-cluster
+          server: https://kubernetes.default.svc
+      clusterResourceWhitelist: []
+      namespaceResourceWhitelist:
+        - group: argoproj.io
+          kind: AppProject
+        - group: argoproj.io
+          kind: ApplicationSet
+
+  - apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: platform-apps-root
+      namespace: argocd
+    spec:
+      project: bootstrap
+      source:
+        repoURL: https://github.com/lhtran-homelab/infrastructures.git
+        targetRevision: main
+        path: gitops/argocd
+        directory:
+          recurse: true
+          include: "{*.yml,*.yaml}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd
+      syncPolicy:
+        automated:
+          enabled: true
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - PruneLast=true
+          - ServerSideApply=true

@@ -1,0 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Gateway and its TLS Certificate come from the chart plus cert-manager's
+# gateway-shim, so nothing is needed here yet.
+resources: []

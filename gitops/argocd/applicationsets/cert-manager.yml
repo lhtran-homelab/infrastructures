@@ -1,0 +1,83 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cert-manager
+  namespace: argocd
+  annotations:
+    # Ahead of traefik: traefik Gateway listeners consume cert-manager issuers.
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+
+  # Never delete generated Applications or their resources automatically; a
+  # removed cluster config would otherwise cascade into deleting cert-manager.
+  syncPolicy:
+    applicationsSync: create-update
+    preserveResourcesOnDeletion: true
+
+  # An Application is produced only for clusters that opt in by committing
+  # gitops/clusters/<cluster>/cert-manager/release.yml. The second generator
+  # pulls the shared cluster identity from that cluster's config.yml.
+  generators:
+    - matrix:
+        generators:
+          - git:
+              repoURL: https://github.com/lhtran-homelab/infrastructures.git
+              revision: main
+              files:
+                - path: gitops/clusters/*/cert-manager/release.yml
+          - git:
+              repoURL: https://github.com/lhtran-homelab/infrastructures.git
+              revision: main
+              files:
+                - path: "gitops/clusters/{{index .path.segments 2}}/config.yml"
+
+  template:
+    metadata:
+      name: "{{.cluster.name}}-cert-manager"
+      labels:
+        cluster: "{{.cluster.name}}"
+        component: cert-manager
+    spec:
+      project: platform-apps
+
+      sources:
+        - repoURL: https://github.com/lhtran-homelab/infrastructures.git
+          targetRevision: main
+          ref: values
+
+        - repoURL: https://charts.jetstack.io
+          chart: cert-manager
+          targetRevision: "{{.release.version}}"
+          helm:
+            valueFiles:
+              - $values/gitops/defaults/cert-manager/values.yml
+              - $values/gitops/clusters/{{.cluster.name}}/cert-manager/values.yml
+
+        # Cluster-specific Issuers, ExternalSecrets, and related configuration.
+        - repoURL: https://github.com/lhtran-homelab/infrastructures.git
+          targetRevision: main
+          path: "gitops/clusters/{{.cluster.name}}/cert-manager/manifests"
+
+      destination:
+        name: "{{.destination.name}}"
+        namespace: cert-manager
+
+      syncPolicy:
+        automated:
+          enabled: true
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PruneLast=true
+          - ServerSideApply=true
+          - FailOnSharedResource=true
+        retry:
+          limit: 10
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
