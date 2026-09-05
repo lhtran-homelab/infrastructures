@@ -1,4 +1,5 @@
 resource "kubernetes_namespace_v1" "argocd" {
+  depends_on = [module.platform_cluster_01]
   metadata {
     labels = {
       shared-traefik-gateway-access : "true"
@@ -19,11 +20,9 @@ resource "helm_release" "argocd" {
       hostname = local.argocd_hostname
     })
   ]
-  depends_on = [module.platform_cluster_01]
+  depends_on = [kubernetes_namespace_v1.argocd]
 }
 
-# Separate release: the argo-cd chart ships its CRDs in templates/, so CRs in the
-# same release fail client-side validation before those CRDs are established.
 resource "helm_release" "argocd_bootstrap" {
   namespace  = "argocd"
   name       = "argocd-bootstrap"

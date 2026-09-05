@@ -1,5 +1,5 @@
 module "platform_cluster_01" {
-  source                   = "https://github.com/lhtran-homelab/iac-modules/releases/download/pve-talos-cluster-v0.3.0/pve-talos-cluster-v0.3.0.zip"
+  source                   = "https://github.com/lhtran-homelab/iac-modules/releases/download/pve-talos-cluster-v0.3.1/pve-talos-cluster-v0.3.1.zip"
   proxmox_api_url          = data.aws_ssm_parameter.proxmox_api_url.value
   proxmox_api_token_id     = data.aws_ssm_parameter.proxmox_api_token_id.value
   proxmox_api_token_secret = data.aws_ssm_parameter.proxmox_api_token_secret.value
@@ -12,13 +12,13 @@ module "platform_cluster_01" {
   vm_network_pve_bridge = "vmbr100"
 
   vm_controller_count        = 1
-  vm_controller_cpu_cores    = 1
-  vm_controller_memory       = 2048
+  vm_controller_cpu_cores    = 2
+  vm_controller_memory       = 4096
   vm_controller_disk_size_gb = 40
 
   vm_worker_count        = 1
   vm_worker_cpu_cores    = 2
-  vm_worker_memory       = 2048
+  vm_worker_memory       = 4096
   vm_worker_disk_size_gb = 60
 
   talos_cluster_name                = local.talos_cluster_name
