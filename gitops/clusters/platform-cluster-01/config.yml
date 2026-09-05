@@ -1,0 +1,8 @@
+cluster:
+  name: platform-cluster-01
+
+# Argo CD cluster registration name rather than an API URL: names are stable and
+# survive endpoint changes. The cluster hosting Argo CD is always "in-cluster";
+# spokes must be registered under the exact name used here.
+destination:
+  name: in-cluster

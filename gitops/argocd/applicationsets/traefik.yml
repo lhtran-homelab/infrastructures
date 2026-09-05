@@ -1,0 +1,80 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: traefik
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+
+  syncPolicy:
+    applicationsSync: create-update
+    preserveResourcesOnDeletion: true
+
+  # An Application is produced only for clusters that opt in by committing
+  # gitops/clusters/<cluster>/traefik/release.yml. The second generator pulls the
+  # shared cluster identity from that cluster's config.yml.
+  generators:
+    - matrix:
+        generators:
+          - git:
+              repoURL: https://github.com/lhtran-homelab/infrastructures.git
+              revision: main
+              files:
+                - path: gitops/clusters/*/traefik/release.yml
+          - git:
+              repoURL: https://github.com/lhtran-homelab/infrastructures.git
+              revision: main
+              files:
+                - path: "gitops/clusters/{{index .path.segments 2}}/config.yml"
+
+  template:
+    metadata:
+      name: "{{.cluster.name}}-traefik"
+      labels:
+        cluster: "{{.cluster.name}}"
+        component: traefik
+    spec:
+      project: platform-apps
+
+      sources:
+        - repoURL: https://github.com/lhtran-homelab/infrastructures.git
+          targetRevision: main
+          ref: values
+
+        - repoURL: https://traefik.github.io/charts
+          chart: traefik
+          targetRevision: "{{.release.version}}"
+          helm:
+            valueFiles:
+              - $values/gitops/defaults/traefik/values.yml
+              - $values/gitops/clusters/{{.cluster.name}}/traefik/values.yml
+
+        # Cluster-specific Certificates and routing configuration.
+        - repoURL: https://github.com/lhtran-homelab/infrastructures.git
+          targetRevision: main
+          path: "gitops/clusters/{{.cluster.name}}/traefik/manifests"
+
+      destination:
+        name: "{{.destination.name}}"
+        namespace: traefik
+
+      syncPolicy:
+        automated:
+          enabled: true
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PruneLast=true
+          - ServerSideApply=true
+          - FailOnSharedResource=true
+        retry:
+          limit: 10
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

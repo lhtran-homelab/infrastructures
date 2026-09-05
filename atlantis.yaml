@@ -1,7 +1,7 @@
 version: 3
 projects:
   - name: platform-cluster-01
-    dir: pve-talos-clusters/platform-cluster-01
+    dir: iac/homelab/pve-talos-clusters/platform-cluster-01
     autoplan:
       when_modified:
         - "*.tf"

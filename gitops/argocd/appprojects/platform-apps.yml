@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform-apps
+  namespace: argocd
+  annotations:
+    # Must exist before the ApplicationSets that reference it.
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  description: Shared platform add-ons rolled out to managed clusters
+
+  sourceRepos:
+    - https://github.com/lhtran-homelab/infrastructures.git
+    - https://charts.jetstack.io
+    - https://charts.external-secrets.io
+    - https://traefik.github.io/charts
+
+  destinations:
+    # Add-ons that ship to every managed cluster.
+    - namespace: cert-manager
+      name: "*"
+      server: "*"
+    - namespace: external-secrets
+      name: "*"
+      server: "*"
+    - namespace: traefik
+      name: "*"
+      server: "*"
+
+    # Workloads that only ever run on the Argo CD host cluster.
+    - namespace: argocd
+      name: in-cluster
+      server: https://kubernetes.default.svc
+    - namespace: openbao
+      name: in-cluster
+      server: https://kubernetes.default.svc
+    - namespace: monitoring
+      name: in-cluster
+      server: https://kubernetes.default.svc
+
+  clusterResourceWhitelist:
+    - group: cert-manager.io
+      kind: ClusterIssuer
+    - group: external-secrets.io
+      kind: ClusterSecretStore
+    # - group: gateway.networking.k8s.io
+    #   kind: GatewayClass
+    # - group: apiextensions.k8s.io
+    #   kind: CustomResourceDefinition
+    # - group: rbac.authorization.k8s.io
+    #   kind: ClusterRole
+    # - group: rbac.authorization.k8s.io
+    #   kind: ClusterRoleBinding
+    # - group: admissionregistration.k8s.io
+    #   kind: ValidatingWebhookConfiguration
+    # - group: admissionregistration.k8s.io
+    #   kind: MutatingWebhookConfiguration
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

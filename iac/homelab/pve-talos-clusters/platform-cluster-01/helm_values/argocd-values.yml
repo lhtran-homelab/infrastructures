@@ -7,9 +7,9 @@ configs:
   cm:
     oidc.config: |
       name: Pocket-ID
-      issuer: https://id.lhtran.com
-      clientID: fc28022a-b819-49fa-a690-bbbfd4866cc0
-      clientSecret: "${argocd_pocketid_client_secret}"
+      issuer: $argocd-pocketid-oidc:issuer
+      clientID: $argocd-pocketid-oidc:clientID
+      clientSecret: $argocd-pocketid-oidc:clientSecret
       requestedScopes:
         - openid
         - profile
