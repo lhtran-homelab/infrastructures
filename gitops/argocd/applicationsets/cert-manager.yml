@@ -25,12 +25,12 @@ spec:
         generators:
           - git:
               repoURL: https://github.com/lhtran-homelab/infrastructures.git
-              revision: main
+              revision: master
               files:
                 - path: gitops/clusters/*/cert-manager/release.yml
           - git:
               repoURL: https://github.com/lhtran-homelab/infrastructures.git
-              revision: main
+              revision: master
               files:
                 - path: "gitops/clusters/{{index .path.segments 2}}/config.yml"
 
@@ -45,7 +45,7 @@ spec:
 
       sources:
         - repoURL: https://github.com/lhtran-homelab/infrastructures.git
-          targetRevision: main
+          targetRevision: master
           ref: values
 
         - repoURL: https://charts.jetstack.io
@@ -58,7 +58,7 @@ spec:
 
         # Cluster-specific Issuers, ExternalSecrets, and related configuration.
         - repoURL: https://github.com/lhtran-homelab/infrastructures.git
-          targetRevision: main
+          targetRevision: master
           path: "gitops/clusters/{{.cluster.name}}/cert-manager/manifests"
 
       destination:

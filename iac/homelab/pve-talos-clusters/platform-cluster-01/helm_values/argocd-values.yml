@@ -1,5 +1,5 @@
 global:
-  domain: "${hostname}"
+  domaster: "${hostname}"
 
 configs:
   params:

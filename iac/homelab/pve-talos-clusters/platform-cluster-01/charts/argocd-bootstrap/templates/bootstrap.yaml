@@ -27,7 +27,7 @@ spec:
   project: bootstrap
   source:
     repoURL: https://github.com/lhtran-homelab/infrastructures.git
-    targetRevision: main
+    targetRevision: master
     path: gitops/argocd
     directory:
       recurse: true

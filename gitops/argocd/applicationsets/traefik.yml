@@ -22,12 +22,12 @@ spec:
         generators:
           - git:
               repoURL: https://github.com/lhtran-homelab/infrastructures.git
-              revision: main
+              revision: master
               files:
                 - path: gitops/clusters/*/traefik/release.yml
           - git:
               repoURL: https://github.com/lhtran-homelab/infrastructures.git
-              revision: main
+              revision: master
               files:
                 - path: "gitops/clusters/{{index .path.segments 2}}/config.yml"
 
@@ -42,7 +42,7 @@ spec:
 
       sources:
         - repoURL: https://github.com/lhtran-homelab/infrastructures.git
-          targetRevision: main
+          targetRevision: master
           ref: values
 
         - repoURL: https://traefik.github.io/charts
@@ -55,7 +55,7 @@ spec:
 
         # Cluster-specific Certificates and routing configuration.
         - repoURL: https://github.com/lhtran-homelab/infrastructures.git
-          targetRevision: main
+          targetRevision: master
           path: "gitops/clusters/{{.cluster.name}}/traefik/manifests"
 
       destination:
