@@ -1,5 +1,3 @@
 # Cluster-specific external-secrets Helm overrides. Layered on top of
 # gitops/defaults/external-secrets/values.yml.
-serviceAccount:
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::734061930556:role/eso-platform-cluster-01
+{}
