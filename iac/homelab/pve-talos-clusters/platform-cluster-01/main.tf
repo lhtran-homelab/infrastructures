@@ -1,5 +1,5 @@
 module "platform_cluster_01" {
-  source                   = "https://github.com/lhtran-homelab/iac-modules/releases/download/pve-talos-cluster-v0.3.1/pve-talos-cluster-v0.3.1.zip"
+  source                   = "https://github.com/lhtran-homelab/iac-modules/releases/download/pve-talos-cluster-v0.3.3/pve-talos-cluster-v0.3.3.zip"
   proxmox_api_url          = data.aws_ssm_parameter.proxmox_api_url.value
   proxmox_api_token_id     = data.aws_ssm_parameter.proxmox_api_token_id.value
   proxmox_api_token_secret = data.aws_ssm_parameter.proxmox_api_token_secret.value
@@ -9,7 +9,7 @@ module "platform_cluster_01" {
 
   vm_storage            = "truenas-nvme"
   vm_image_storage      = "truenas-nfs"
-  vm_network_pve_bridge = "vmbr100"
+  vm_network_pve_bridge = "vmbr101"
 
   vm_controller_count        = 1
   vm_controller_cpu_cores    = 2
@@ -23,7 +23,7 @@ module "platform_cluster_01" {
 
   talos_cluster_name                = local.talos_cluster_name
   talos_cluster_virtual_ip_hostname = "${local.talos_cluster_name}.lhtran.com"
-  talos_cluster_virtual_ip          = "172.16.100.30"
+  talos_cluster_virtual_ip          = "172.16.101.5"
   talos_architecture                = "amd64"
   talos_version                     = "1.13.8"
   talos_schematic_id                = "e15f3b626ab4a557519983f80f0530ab962ceb961e49c38f577da35dfeee9fa4" #siderolabs/iscsi-tools, siderolabs/nfs-utils, siderolabs/nvme-cli, siderolabs/qemu-guest-agent
@@ -66,5 +66,5 @@ resource "local_file" "talosconfig" {
 
 resource "local_file" "frr_bgp_config" {
   content  = module.platform_cluster_01.frr_bgp_config
-  filename = "${path.module}/artifacts/frr_bgp_config"
+  filename = "${path.module}/artifacts/frr_bgp.conf"
 }
