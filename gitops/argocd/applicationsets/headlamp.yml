@@ -58,6 +58,9 @@ spec:
         namespace: kube-system
 
       syncPolicy:
+        managedNamespaceMetadata:
+          labels:
+            shared-traefik-gateway-access: "true"      
         automated:
           enabled: true
           prune: true
