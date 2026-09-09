@@ -1,5 +1,5 @@
 module "platform_cluster_01" {
-  source                   = "https://github.com/lhtran-homelab/iac-modules/releases/download/pve-talos-cluster-v0.3.3/pve-talos-cluster-v0.3.3.zip"
+  source                   = "https://github.com/lhtran-homelab/iac-modules/releases/download/pve-talos-cluster-v0.3.4/pve-talos-cluster-v0.3.4.zip"
   proxmox_api_url          = data.aws_ssm_parameter.proxmox_api_url.value
   proxmox_api_token_id     = data.aws_ssm_parameter.proxmox_api_token_id.value
   proxmox_api_token_secret = data.aws_ssm_parameter.proxmox_api_token_secret.value
@@ -49,8 +49,16 @@ module "platform_cluster_01" {
   pihole_url      = data.aws_ssm_parameter.pihole_api_url.value
   pihole_password = data.aws_ssm_parameter.pihole_password.value
 
-  s3_oidc = {
-    region = local.aws_region
+  sa_s3_oidc = {
+    region = "us-east-1"
+  }
+  idp_oidc = {
+    issuer_url           = "https://id.lhtran.com"
+    client_id            = "ff0fd5dd-fb44-47c5-be79-804e620c6fe5" #headlamp app
+    username_claim       = "email"
+    groups_claim         = "groups"
+    groups_prefix        = "oidc:"
+    cluster_admin_groups = ["talos_admin"]
   }
 }
 

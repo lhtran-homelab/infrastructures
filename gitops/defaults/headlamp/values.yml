@@ -1,0 +1,11 @@
+config:
+  inCluster: true
+
+  oidc:
+    externalSecret:
+      enabled: true
+      name: headlamp-pocketid-oidc-secret
+      hasScopes: true
+
+ingress:
+  enabled: false
