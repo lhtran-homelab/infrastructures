@@ -29,5 +29,7 @@ httpRoute:
     - name: traefik-gateway
       namespace: traefik
       sectionName: https-tools
+      group: gateway.networking.k8s.io
+      kind: Gateway      
   hostnames:
     - "headlamp.tools.lhtran.com"
