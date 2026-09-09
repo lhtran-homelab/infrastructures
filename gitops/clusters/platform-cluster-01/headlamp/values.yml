@@ -34,9 +34,14 @@ httpRoute:
   hostnames:
     - "headlamp.tools.lhtran.com"
   rules:
-    - backendRefs:
-      - name: "{{ .Release.Name }}"
-        port: 80
-        group: ""
-        kind: Service
-        weight: 1
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: platform-cluster-01-headlamp
+          port: 80
+          group: ""
+          kind: Service
+          weight: 1
+      
