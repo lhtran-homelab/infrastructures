@@ -33,3 +33,9 @@ httpRoute:
       kind: Gateway      
   hostnames:
     - "headlamp.tools.lhtran.com"
+  rules:
+    - backendRefs:
+      - name: "{{ .Release.Name }}"
+        group: ""
+        kind: Service
+        weight: 1
