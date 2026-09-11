@@ -1,0 +1,31 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: pod-identity-webhook
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pod-identity-webhook
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  secretName: pod-identity-webhook-cert
+  privateKey:
+    rotationPolicy: Always
+  commonName: pod-identity-webhook.aws-pod-identity-webhook.svc
+  dnsNames:
+    - pod-identity-webhook
+    - pod-identity-webhook.aws-pod-identity-webhook
+    - pod-identity-webhook.aws-pod-identity-webhook.svc
+    - pod-identity-webhook.aws-pod-identity-webhook.svc.cluster.local
+  duration: 2160h
+  renewBefore: 360h
+  isCA: true
+  issuerRef:
+    name: pod-identity-webhook
+    kind: Issuer

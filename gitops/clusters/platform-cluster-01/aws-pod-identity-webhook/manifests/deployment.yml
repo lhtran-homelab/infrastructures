@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-identity-webhook
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pod-identity-webhook
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pod-identity-webhook
+    spec:
+      serviceAccountName: pod-identity-webhook
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: pod-identity-webhook
+          image: public.ecr.aws/eks/amazon-eks-pod-identity-webhook:v0.6.17
+          imagePullPolicy: IfNotPresent
+          command:
+            - /webhook
+          args:
+            - --in-cluster=false
+            - --namespace=aws-pod-identity-webhook
+            - --service-name=pod-identity-webhook
+            - --port=9443
+            - --annotation-prefix=eks.amazonaws.com
+            - --token-audience=sts.amazonaws.com
+            - --aws-default-region=us-east-1
+            - --sts-regional-endpoint=true
+            - --logtostderr
+          ports:
+            - name: https
+              containerPort: 9443
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          readinessProbe:
+            tcpSocket:
+              port: https
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: https
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          volumeMounts:
+            - name: cert
+              mountPath: /etc/webhook/certs
+              readOnly: true
+      volumes:
+        - name: cert
+          secret:
+            secretName: pod-identity-webhook-cert

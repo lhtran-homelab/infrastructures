@@ -1,10 +1,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: openbao
+  name: aws-pod-identity-webhook
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    # Create the webhook application before workloads that rely on IRSA.
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   goTemplate: true
   goTemplateOptions:
@@ -20,7 +21,7 @@ spec:
               repoURL: https://github.com/lhtran-homelab/infrastructures.git
               revision: master
               files:
-                - path: gitops/clusters/*/openbao/release.yml
+                - path: gitops/clusters/*/aws-pod-identity-webhook/release.yml
           - git:
               repoURL: https://github.com/lhtran-homelab/infrastructures.git
               revision: master
@@ -29,39 +30,23 @@ spec:
 
   template:
     metadata:
-      name: "{{.cluster.name}}-openbao"
+      name: "{{.cluster.name}}-aws-pod-identity-webhook"
       labels:
         cluster: "{{.cluster.name}}"
-        component: openbao
+        component: aws-pod-identity-webhook
     spec:
       project: platform-apps
-
-      sources:
-        - repoURL: https://github.com/lhtran-homelab/infrastructures.git
-          targetRevision: master
-          ref: values
-
-        - repoURL: https://openbao.github.io/openbao-helm
-          chart: openbao
-          targetRevision: "{{.release.version}}"
-          helm:
-            valueFiles:
-              - $values/gitops/defaults/openbao/values.yml
-              - $values/gitops/clusters/{{.cluster.name}}/openbao/values.yml
-
-        - repoURL: https://github.com/lhtran-homelab/infrastructures.git
-          targetRevision: master
-          path: "gitops/clusters/{{.cluster.name}}/openbao/manifests"
-
+      source:
+        repoURL: https://github.com/lhtran-homelab/infrastructures.git
+        targetRevision: master
+        path: "gitops/clusters/{{.cluster.name}}/aws-pod-identity-webhook/manifests"
+        kustomize:
+          images:
+            - "public.ecr.aws/eks/amazon-eks-pod-identity-webhook:v{{.release.version}}"
       destination:
         name: "{{.destination.name}}"
-        namespace: openbao
-
+        namespace: aws-pod-identity-webhook
       syncPolicy:
-        managedNamespaceMetadata:
-          labels:
-            aws-irsa-webhook: "enabled"
-            shared-traefik-gateway-access: "true"
         automated:
           enabled: true
           prune: true

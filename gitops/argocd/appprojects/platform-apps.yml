@@ -31,7 +31,10 @@ spec:
       server: "*"
     - namespace: kube-system
       name: "*"
-      server: "*"      
+      server: "*"
+    - namespace: aws-pod-identity-webhook
+      name: "*"
+      server: "*" 
 
     # Workloads that only ever run on the Argo CD host cluster.
     - namespace: argocd

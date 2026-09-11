@@ -1,0 +1,3 @@
+# Presence of this file opts platform-cluster-01 into the AWS pod identity webhook.
+release:
+  version: "0.6.17"
