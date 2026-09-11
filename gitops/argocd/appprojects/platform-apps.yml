@@ -65,6 +65,8 @@ spec:
       kind: ValidatingWebhookConfiguration
     - group: admissionregistration.k8s.io
       kind: MutatingWebhookConfiguration
+    - group: storage.k8s.io
+      kind: CSIDriver
   namespaceResourceWhitelist:
     - group: "*"
       kind: "*"
