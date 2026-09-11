@@ -80,6 +80,9 @@ server:
             data = {
               type        = "oidc"
               description = "Pocket-ID OIDC authentication"
+              config = {
+                listing_visibility = "unauth"
+              }
             }
           }
 
