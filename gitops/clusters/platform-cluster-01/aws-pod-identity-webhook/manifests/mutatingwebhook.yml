@@ -17,9 +17,6 @@ webhooks:
         namespace: aws-pod-identity-webhook
         path: /mutate
         port: 443
-    namespaceSelector:
-      matchLabels:
-        aws-irsa-webhook: enabled
     objectSelector:
       matchExpressions:
         - key: eks.amazonaws.com/skip-pod-identity-webhook

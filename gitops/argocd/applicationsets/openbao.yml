@@ -60,7 +60,7 @@ spec:
       syncPolicy:
         managedNamespaceMetadata:
           labels:
-            aws-irsa-webhook: "enabled"
+            pod-security.kubernetes.io/enforce: privileged
             shared-traefik-gateway-access: "true"
         automated:
           enabled: true
