@@ -15,17 +15,6 @@ server:
           name: traefik-gateway
           namespace: traefik
           sectionName: https-tools
-      rules:
-        - backendRefs:
-            - group: ''
-              kind: Service
-              name: platform-cluster-01-openbao-active
-              port: 8200
-              weight: 1
-          matches:
-            - path:
-                type: PathPrefix
-                value: /
   dataStorage:
     enabled: true
     size: 5Gi
