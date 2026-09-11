@@ -15,12 +15,14 @@ server:
           name: traefik-gateway
           namespace: traefik
           sectionName: https-tools
+  
   dataStorage:
     enabled: true
     size: 5Gi
     mountPath: "/openbao/data"
     storageClass: freenas-api-nvmeof
     accessMode: ReadWriteOnce
+  
   auditStorage:
     enabled: false
     size: 5Gi
@@ -32,13 +34,15 @@ server:
     - envName: POCKETID_OIDC_CLIENT_SECRET
       secretName: openbao-pocketid-oidc
       secretKey: OIDC_CLIENT_SECRET
+  
   extraEnvironmentVars:
     AWS_REGION: us-east-1
-    VAULT_AWSKMS_SEAL_KEY_ID: alias/openbao-unseal-key
-    VAULT_SEAL_TYPE: awskms
+    # VAULT_AWSKMS_SEAL_KEY_ID: alias/openbao-unseal-key
+    # VAULT_SEAL_TYPE: awskms
 
   standalone:
     enabled: false
+  
   ha:
     enabled: true
     replicas: 1
@@ -51,6 +55,22 @@ server:
 
       config: |
         ui = true
+
+        plugin_directory         = "/openbao/plugins"
+        plugin_auto_download     = true
+        plugin_download_behavior = "fail"
+
+        plugin "kms" "awskms" {
+          image       = "ghcr.io/openbao/openbao-plugin-kms-aws"
+          version     = "v0.1.0"
+          binary_name = "openbao-plugin-kms-aws"
+          sha256sum   = "fa332cf1863a948d4b166ed9acb7da1608fb1dffbde4425626d787424fda5a05"
+        }
+
+        seal "awskms" {
+          region     = "us-east-1"
+          kms_key_id = "alias/openbao-unseal-key"
+        }        
 
         listener "tcp" {
           tls_disable = 1
@@ -132,6 +152,14 @@ server:
 
     disruptionBudget:
       enabled: true
+
+  volumes:
+    - name: plugins
+      emptyDir: {}
+
+  volumeMounts:
+    - name: plugins
+      mountPath: /openbao/plugins      
 
 ui:
   enabled: false
