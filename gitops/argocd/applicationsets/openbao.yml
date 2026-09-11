@@ -1,0 +1,78 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: openbao
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  syncPolicy:
+    applicationsSync: create-update
+    preserveResourcesOnDeletion: true
+
+  generators:
+    - matrix:
+        generators:
+          - git:
+              repoURL: https://github.com/lhtran-homelab/infrastructures.git
+              revision: master
+              files:
+                - path: gitops/clusters/*/openbao/release.yml
+          - git:
+              repoURL: https://github.com/lhtran-homelab/infrastructures.git
+              revision: master
+              files:
+                - path: "gitops/clusters/{{index .path.segments 2}}/config.yml"
+
+  template:
+    metadata:
+      name: "{{.cluster.name}}-openbao"
+      labels:
+        cluster: "{{.cluster.name}}"
+        component: openbao
+    spec:
+      project: platform-apps
+
+      sources:
+        - repoURL: https://github.com/lhtran-homelab/infrastructures.git
+          targetRevision: master
+          ref: values
+
+        - repoURL: https://openbao.github.io/openbao-helm
+          chart: openbao
+          targetRevision: "{{.release.version}}"
+          helm:
+            valueFiles:
+              - $values/gitops/defaults/openbao/values.yml
+              - $values/gitops/clusters/{{.cluster.name}}/openbao/values.yml
+
+        - repoURL: https://github.com/lhtran-homelab/infrastructures.git
+          targetRevision: master
+          path: "gitops/clusters/{{.cluster.name}}/openbao/manifests"
+
+      destination:
+        name: "{{.destination.name}}"
+        namespace: openbao
+
+      syncPolicy:
+        managedNamespaceMetadata:
+          labels:
+            shared-traefik-gateway-access: "true"      
+        automated:
+          enabled: true
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PruneLast=true
+          - ServerSideApply=true
+          - FailOnSharedResource=true
+        retry:
+          limit: 10
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

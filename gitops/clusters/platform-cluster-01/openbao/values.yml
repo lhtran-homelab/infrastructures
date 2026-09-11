@@ -1,0 +1,135 @@
+server:
+  serviceAccount:
+    name: openbao
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::734061930556:role/openbao-platform-cluster-01
+
+  gateway:
+    httpRoute:
+      hosts:
+      - openbao.tools.lhtran.com      
+      enabled: true
+      parentRefs:
+        - name: traefik-gateway
+          namespace: traefik
+          sectionName: https-tools
+  dataStorage:
+    enabled: true
+    size: 5Gi
+    mountPath: "/openbao/data"
+    storageClass: freenas-api-nvmeof
+    accessMode: ReadWriteOnce
+  auditStorage:
+    enabled: false
+    size: 5Gi
+    mountPath: "/openbao/audit"
+    storageClass: null
+    accessMode: ReadWriteOnce
+  
+  extraSecretEnvironmentVars:
+    - envName: POCKETID_OIDC_CLIENT_SECRET
+      secretName: openbao-pocketid-oidc
+      secretKey: OIDC_CLIENT_SECRET
+  extraEnvironmentVars:
+    AWS_REGION: us-east-1
+    VAULT_AWSKMS_SEAL_KEY_ID: alias/openbao-unseal-key
+    VAULT_SEAL_TYPE: awskms
+
+  standalone:
+    enabled: false
+  ha:
+    enabled: true
+    replicas: 1
+    apiAddr: null
+    clusterAddr: null
+
+    raft:
+      enabled: true
+      setNodeId: true
+
+      config: |
+        ui = true
+
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+          # Enable unauthenticated metrics access (necessary for Prometheus Operator)
+          #telemetry {
+          #  unauthenticated_metrics_access = "true"
+          #}
+        }
+
+        storage "raft" {
+          path = "/openbao/data"
+
+          retry_join {
+            auto_join = "provider=k8s namespace=\"openbao\" label_selector=\"app.kubernetes.io/instance=openbao,component=server,openbao-active=true\""
+            auto_join_scheme = "http"
+          }
+        }
+
+        service_registration "kubernetes" {}
+
+        initialize "identity" {
+          request "mount-oidc" {
+            operation = "update"
+            path      = "sys/auth/oidc/pocket-id"
+            data = {
+              type        = "oidc"
+              description = "Pocket-ID OIDC authentication"
+            }
+          }
+
+          request "configure-oidc" {
+            operation = "update"
+            path      = "auth/oidc/pocket-id/config"
+            data = {
+              oidc_discovery_url = "https://id.lhtran.com"
+              oidc_client_id     = "3b19fad2-4ce6-4235-8d01-09cd22bae660"
+              oidc_client_secret = {
+                eval_type   = "string"
+                eval_source = "env"
+                env_var     = "POCKETID_OIDC_CLIENT_SECRET"
+              }
+              default_role = "openbao_admin"
+            }
+          }
+
+          request "configure-oidc-role" {
+            operation = "update"
+            path      = "auth/oidc/pocket-id/role/openbao_admin"
+            data = {
+              user_claim = "email"
+              groups_claim = "groups"
+              bound_claims = {
+                groups = ["openbao_admin"]
+              }
+              allowed_redirect_uris = [
+                "https://openbao.tools.lhtran.com/ui/vault/auth/oidc/pocket-id/oidc/callback",
+                "http://localhost:8250/oidc/callback"
+              ]
+              oidc_scopes = ["openid", "profile", "email", "groups"]
+              token_policies = ["superuser"]
+            }
+          }
+        }
+
+        initialize "policy" {
+          request "add-superuser-policy" {
+            operation = "update"
+            path      = "sys/policies/acl/superuser"
+            data = {
+              policy = "path \"*\" { capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\", \"sudo\"] }"
+            }
+          }
+        }
+
+    disruptionBudget:
+      enabled: true
+
+ui:
+  enabled: false
+
+csi:
+  enabled: true
