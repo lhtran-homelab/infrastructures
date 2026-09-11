@@ -1,5 +1,5 @@
 module "platform_cluster_01" {
-  source                   = "https://github.com/lhtran-homelab/iac-modules/releases/download/pve-talos-cluster-v0.3.4/pve-talos-cluster-v0.3.4.zip"
+  source                   = "https://github.com/lhtran-homelab/iac-modules/releases/download/pve-talos-cluster-v0.3.6/pve-talos-cluster-v0.3.6.zip"
   proxmox_api_url          = data.aws_ssm_parameter.proxmox_api_url.value
   proxmox_api_token_id     = data.aws_ssm_parameter.proxmox_api_token_id.value
   proxmox_api_token_secret = data.aws_ssm_parameter.proxmox_api_token_secret.value
