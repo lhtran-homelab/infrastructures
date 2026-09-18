@@ -17,6 +17,7 @@ spec:
     - https://kubernetes-sigs.github.io/headlamp
     - https://openbao.github.io/openbao-helm
     - https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+    - https://victoriametrics.github.io/helm-charts
 
   destinations:
     # Add-ons that ship to every managed cluster.
@@ -70,6 +71,8 @@ spec:
       kind: MutatingWebhookConfiguration
     - group: storage.k8s.io
       kind: CSIDriver
+    # - group: operator.victoriametrics.com
+    #   kind: "*"         
   namespaceResourceWhitelist:
     - group: "*"
       kind: "*"

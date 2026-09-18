@@ -1,0 +1,142 @@
+# ---------------------------------------------------------------------------
+# Operator & CRD Management
+# ---------------------------------------------------------------------------
+victoria-metrics-operator:
+  enabled: true
+  crds:
+    plain: true
+    cleanup:
+      enabled: true
+# ---------------------------------------------------------------------------
+# Disable Single-Node Engines
+# ---------------------------------------------------------------------------
+vmsingle:
+  enabled: false
+vlsingle:
+  enabled: false
+# ---------------------------------------------------------------------------
+# VictoriaMetrics Cluster (Metrics) - 2 Pods per Component
+# ---------------------------------------------------------------------------
+vmcluster:
+  enabled: true
+  spec:
+    retentionPeriod: "1" # 1 month
+    replicationFactor: 2
+    vmstorage:
+      replicaCount: 2
+      storageDataPath: /vm-data
+    vmselect:
+      enabled: true
+      replicaCount: 2
+      # Storage is omitted here to keep cache in-memory by default (stateless).
+      # If disk cache persistence is desired, specify it in the cluster file.
+    vminsert:
+      enabled: true
+      replicaCount: 2
+# ---------------------------------------------------------------------------
+# VictoriaLogs Cluster (Logs) - 2 Pods per Component
+# ---------------------------------------------------------------------------
+vlcluster:
+  enabled: true
+  spec:
+    vlstorage:
+      replicaCount: 2
+      retentionPeriod: 14d
+      storageDataPath: /vl-data
+    vlselect:
+      enabled: true
+      replicaCount: 2
+    vlinsert:
+      enabled: true
+      replicaCount: 2
+# ---------------------------------------------------------------------------
+# VMAuth (Unified Gateway Proxy for VMCluster + VLCluster)
+# ---------------------------------------------------------------------------
+vmauth:
+  enabled: true
+  spec:
+    port: "8427"
+    unauthorizedUserAccessSpec:
+      discover_backend_ips: true
+      url_map:
+        # 1. VictoriaLogs Query API (/select/logsql/...)
+        - src_paths:
+            - '/select/logsql/.*'
+          url_prefix:
+            - '{{ urlJoin (omit .vl.read "path") }}/'
+        # 2. VictoriaLogs Ingestion API
+        - src_paths:
+            - '/insert/jsonline.*'
+            - '/insert/elasticsearch/.*'
+            - '/insert/loki/.*'
+            - '/insert/native.*'
+          url_prefix:
+            - '{{ urlJoin (omit .vl.write "path") }}/'
+        # 3. VictoriaMetrics Query API (/select/0/prometheus/...)
+        - src_paths:
+            - '{{ .vm.read.path }}/.*'
+            - '/api/v1/query.*'
+            - '/api/v1/series.*'
+            - '/api/v1/labels.*'
+            - '/api/v1/label/.*'
+          url_prefix:
+            - '{{ urlJoin (omit .vm.read "path") }}/'
+        # 4. VictoriaMetrics Ingestion API (/insert/0/prometheus/...)
+        - src_paths:
+            - '{{ .vm.write.path }}/.*'
+            - '/api/v1/write.*'
+          url_prefix:
+            - '{{ urlJoin (omit .vm.write "path") }}/'
+# ---------------------------------------------------------------------------
+# Built-in Alertmanager & VMAlert
+# ---------------------------------------------------------------------------
+alertmanager:
+  enabled: true
+  spec:
+    replicaCount: 1
+    port: "9093"
+    selectAllByDefault: true
+  config:
+    route:
+      receiver: "blackhole"
+      group_by: ["alertgroup", "job"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+    receivers:
+      - name: "blackhole"
+vmalert:
+  enabled: true
+  spec:
+    selectAllByDefault: true
+# ---------------------------------------------------------------------------
+# Built-in Grafana & Dashboard Sync
+# ---------------------------------------------------------------------------
+grafana:
+  enabled: true
+  # Install VictoriaMetrics and VictoriaLogs dedicated Grafana datasource plugins
+  plugins:
+    - victoriametrics-metrics-datasource
+    - victoriametrics-logs-datasource
+  sidecar:
+    datasources:
+      enabled: true
+      label: grafana_datasource
+      labelValue: "1"
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+defaultDashboards:
+  enabled: true
+# ---------------------------------------------------------------------------
+# Kubernetes Scrapers
+# ---------------------------------------------------------------------------
+vmagent:
+  enabled: true
+  spec:
+    selectAllByDefault: true
+prometheus-node-exporter:
+  enabled: true
+kube-state-metrics:
+  enabled: true

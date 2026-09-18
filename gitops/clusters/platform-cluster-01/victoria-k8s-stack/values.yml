@@ -1,0 +1,122 @@
+# ---------------------------------------------------------------------------
+# Cluster Identity
+# ---------------------------------------------------------------------------
+vmagent:
+  spec:
+    externalLabels:
+      cluster: platform-cluster-01
+
+# ---------------------------------------------------------------------------
+# VictoriaMetrics Cluster (Metrics) - Explicit Cluster Configuration
+# ---------------------------------------------------------------------------
+vmcluster:
+  enabled: true
+  spec:
+    retentionPeriod: "6" # 6 month retention
+    replicationFactor: 2
+    vmstorage:
+      replicaCount: 2
+      storageDataPath: /vm-data
+      storage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: freenas-api-nvmeof
+            resources:
+              requests:
+                storage: 50Gi
+    vmselect:
+      enabled: true
+      replicaCount: 2
+      # Cache kept in-memory (stateless). Add volumeClaimTemplate if persistent cache is desired.
+    vminsert:
+      enabled: true
+      replicaCount: 2
+
+# ---------------------------------------------------------------------------
+# VictoriaLogs Cluster (Logs) - Explicit Cluster Configuration
+# ---------------------------------------------------------------------------
+vlcluster:
+  enabled: true
+  spec:
+    vlstorage:
+      replicaCount: 2
+      retentionPeriod: 30d
+      storageDataPath: /vl-data
+      storage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: freenas-api-nvmeof
+            resources:
+              requests:
+                storage: 50Gi
+    vlselect:
+      enabled: true
+      replicaCount: 2
+    vlinsert:
+      enabled: true
+      replicaCount: 2
+
+# ---------------------------------------------------------------------------
+# VMAuth Exposure via Traefik Gateway
+# ---------------------------------------------------------------------------
+vmauth:
+  route:
+    enabled: true
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik
+        sectionName: https-tools
+        group: gateway.networking.k8s.io
+        kind: Gateway
+    hostnames:
+      - "vmetrics.tools.lhtran.com"
+    port: "8427"
+
+# ---------------------------------------------------------------------------
+# Alertmanager Configuration & Exposure
+# ---------------------------------------------------------------------------
+alertmanager:
+  spec:
+    replicaCount: 1
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: freenas-api-nvmeof
+          resources:
+            requests:
+              storage: 2Gi
+  route:
+    enabled: true
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik
+        sectionName: https-tools
+        group: gateway.networking.k8s.io
+        kind: Gateway
+    hostnames:
+      - "alertmanager.tools.lhtran.com"
+    port: "9093"
+
+# ---------------------------------------------------------------------------
+# Grafana Configuration & Exposure
+# ---------------------------------------------------------------------------
+grafana:
+  grafana.ini:
+    server:
+      root_url: "https://grafana.tools.lhtran.com"
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: freenas-api-nvmeof
+    size: 10Gi
+  route:
+    main:
+      enabled: true
+      parentRefs:
+        - name: traefik-gateway
+          namespace: traefik
+          sectionName: https-tools
+          group: gateway.networking.k8s.io
+          kind: Gateway
+      hostnames:
+        - "grafana.tools.lhtran.com"
