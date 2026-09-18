@@ -45,6 +45,9 @@ spec:
           chart: openbao
           targetRevision: "{{.release.version}}"
           helm:
+            parameters:
+              - name: fullnameOverride
+                value: openbao
             valueFiles:
               - $values/gitops/defaults/openbao/values.yml
               - $values/gitops/clusters/{{.cluster.name}}/openbao/values.yml

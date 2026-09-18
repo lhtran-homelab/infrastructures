@@ -52,6 +52,9 @@ spec:
           chart: cert-manager
           targetRevision: "{{.release.version}}"
           helm:
+            parameters:
+              - name: fullnameOverride
+                value: cert-manager
             valueFiles:
               - $values/gitops/defaults/cert-manager/values.yml
               - $values/gitops/clusters/{{.cluster.name}}/cert-manager/values.yml

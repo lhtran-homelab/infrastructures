@@ -49,6 +49,9 @@ spec:
           chart: traefik
           targetRevision: "{{.release.version}}"
           helm:
+            parameters:
+              - name: fullnameOverride
+                value: traefik
             valueFiles:
               - $values/gitops/defaults/traefik/values.yml
               - $values/gitops/clusters/{{.cluster.name}}/traefik/values.yml

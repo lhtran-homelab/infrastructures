@@ -45,6 +45,9 @@ spec:
           chart: headlamp
           targetRevision: "{{.release.version}}"
           helm:
+            parameters:
+              - name: fullnameOverride
+                value: headlamp
             valueFiles:
               - $values/gitops/defaults/headlamp/values.yml
               - $values/gitops/clusters/{{.cluster.name}}/headlamp/values.yml

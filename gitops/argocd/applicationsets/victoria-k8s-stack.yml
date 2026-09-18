@@ -47,7 +47,7 @@ spec:
           helm:
             parameters:
               - name: fullnameOverride
-                value: vm-stack          
+                value: victoria-k8s-stack
             valueFiles:
               - $values/gitops/defaults/victoria-k8s-stack/values.yml
               - $values/gitops/clusters/{{.cluster.name}}/victoria-k8s-stack/values.yml
