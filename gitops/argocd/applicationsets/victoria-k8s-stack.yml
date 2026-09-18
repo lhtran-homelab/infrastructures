@@ -45,6 +45,9 @@ spec:
           chart: victoria-metrics-k8s-stack
           targetRevision: "{{.release.version}}"
           helm:
+            parameters:
+              - name: fullnameOverride
+                value: vm-stack          
             valueFiles:
               - $values/gitops/defaults/victoria-k8s-stack/values.yml
               - $values/gitops/clusters/{{.cluster.name}}/victoria-k8s-stack/values.yml
