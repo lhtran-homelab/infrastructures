@@ -39,7 +39,7 @@ httpRoute:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: platform-cluster-01-headlamp
+        - name: headlamp
           port: 80
           group: ""
           kind: Service

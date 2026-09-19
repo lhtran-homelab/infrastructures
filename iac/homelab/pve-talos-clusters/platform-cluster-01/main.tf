@@ -16,10 +16,10 @@ module "platform_cluster_01" {
   vm_controller_memory       = 4096
   vm_controller_disk_size_gb = 40
 
-  vm_worker_count        = 1
-  vm_worker_cpu_cores    = 2
-  vm_worker_memory       = 4096
-  vm_worker_disk_size_gb = 60
+  vm_worker_count        = 2
+  vm_worker_cpu_cores    = 4
+  vm_worker_memory       = 8192
+  vm_worker_disk_size_gb = 120
 
   talos_cluster_name                = local.talos_cluster_name
   talos_cluster_virtual_ip_hostname = "${local.talos_cluster_name}.lhtran.com"
