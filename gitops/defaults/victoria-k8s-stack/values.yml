@@ -28,8 +28,7 @@ vmcluster:
     vmselect:
       enabled: true
       replicaCount: 2
-      # Storage is omitted here to keep cache in-memory by default (stateless).
-      # If disk cache persistence is desired, specify it in the cluster file.
+      storage: null # Cache kept in-memory (stateless). Add volumeClaimTemplate if persistent cache is desired.
     vminsert:
       enabled: true
       replicaCount: 2

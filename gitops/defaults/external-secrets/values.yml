@@ -1,4 +1,7 @@
 installCRDs: true
 
+webhook:
+  failurePolicy: Ignore
+
 serviceAccount:
   name: external-secrets
