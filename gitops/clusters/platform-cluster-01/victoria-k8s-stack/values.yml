@@ -71,6 +71,10 @@ vmauth:
     hostnames:
       - "vmetrics.tools.lhtran.com"
     port: "8427"
+    matches:
+      - path:
+          type: PathPrefix
+          value: "/"
 
 # ---------------------------------------------------------------------------
 # Alertmanager Configuration & Exposure
