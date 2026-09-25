@@ -105,9 +105,24 @@ alertmanager:
 # Grafana Configuration & Exposure
 # ---------------------------------------------------------------------------
 grafana:
+  envFromSecret: grafana-pocketid-oidc
   grafana.ini:
     server:
       root_url: "https://grafana.tools.lhtran.com"
+    auth.generic_oauth:
+      enabled: true
+      name: Pocket ID
+      allow_sign_up: true
+      scopes: "openid email profile groups"
+      auth_url: "https://id.lhtran.com/authorize"
+      token_url: "https://id.lhtran.com/api/oidc/token"
+      api_url: "https://id.lhtran.com/api/oidc/userinfo"
+      email_attribute_name: "email:primary"
+      role_attribute_path: "contains(groups[*], 'grafana_admin') && 'GrafanaAdmin' || 'Viewer'"
+      allow_assign_grafana_admin: true      
+    auth:
+      disable_login_form: true   
+      oauth_auto_login: false             
   persistence:
     enabled: true
     type: pvc
